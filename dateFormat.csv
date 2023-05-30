@@ -1,0 +1,24 @@
+%dw 2.0
+import try, fail from dw::Runtime
+output application/json
+var listOfFormats = [
+    "MMM-yy-dd",
+    "dd-MMM-yy",
+    "yy-MMM-dd",
+    "M/d/yyyy",
+    "MMMM dd,yyyy",
+    "MMM-yy-dd",
+    "M/dd/yyyy",
+    "dd-MMM-yy",
+    "M/dd/yyyy HH:m",
+    "M/dd/yyyy H:mm:ss a",
+    "dd.MM.yyyy",
+    "MM/yy/dd",
+    "dd.M.yyyy"
+]
+var date = "01/11/20"
+---
+(listOfFormats map ((item, index) -> 
+    try(() -> if(sizeOf(date) > 6) date as Date{format: item} as String{format: "MM/dd/yyyy"} else if(sizeOf(date) == 5) (date ++ "/01")  as Date{format: item} as String{format: "MM/dd/yyyy"}  else (date ++ "-01")  as Date{format: item} as String{format: "MM/dd/yyyy"} )
+
+)filter ($.success))[0].result
