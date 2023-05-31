@@ -1,0 +1,109 @@
+Dataweave :- 
+
+%dw 2.0
+output application/json
+var arr= payload  map ((item, index) -> { "result": item.o_result, "index": index } ) filter ((item, index) -> item.result ~= "success") map ((item, index) -> item.index)
+var arrf= payload  map ((item, index) -> { "result": item.o_result, "index": index } ) filter ((item, index) -> item.result ~= "failure") map ((item, index) -> item.index)
+---
+{
+jobLineSuccess :
+initialp filter ((item, index) -> arr contains index) map ((item, index) -> {jobNo :item.jobId} ),
+jobLineErros:
+initialp filter ((item, index) -> arrf contains index) map ((item1, index1) -> {
+    jobNo :item1.jobId,
+    errorId : 1
+    }
+    )
+} mapObject ((value, key, index) -> if ((key) ~= "jobLineErros")
+{(key): (value) map ((item, inde) -> item ++ {errorMessage : payload filter ((item, index1) -> (arrf contains  index1)) filter ((item, index2) -> index2 == inde) reduce ((item1, accumulator = "") -> item1.o_message )
+
+})}
+ else 
+ {(key): (value)}
+)
+
+------------------------------------------------------------------------------------------------------------------
+
+initialP :---
+
+[
+  {
+    "omTransactionId": 12344,
+    "sourceSystem": "SFOMS",
+    "omTransactionType": "A",
+    "employeeId": 110088,
+    "billCodeId": "1998",
+    "comment": "ADRF",
+    "itemNo": "CELLGUARD",
+    "jobId": 84283358,
+    "qty": 5,
+    "unitChrAmt": 5,
+    "warrantyFlag": "TYF"
+  },
+  {
+    "omTransactionId": 12345,
+    "sourceSystem": "SFOMS",
+    "omTransactionType": "A",
+    "employeeId": 110088,
+    "billCodeId": "1998",
+    "comment": "ADRF",
+    "itemNo": "CELLGUARD",
+    "jobId": 84283359,
+    "qty": 5,
+    "unitChrAmt": 5,
+    "warrantyFlag": "TYF"
+  },
+  {
+    "omTransactionId": 12345,
+    "sourceSystem": "SFOMS",
+    "omTransactionType": "A",
+    "employeeId": 110088,
+    "billCodeId": "1998",
+    "comment": "ADRF",
+    "itemNo": "CELLGUARD",
+    "jobId": 84283357,
+    "qty": 5,
+    "unitChrAmt": 5,
+    "warrantyFlag": "TYF"
+  }
+]
+
+----------------------------------------------------------------------------------------------------------
+payload:-
+
+[
+  {
+    "o_message": "Operation completed successfully.",
+    "o_result": "success"
+  },
+  {
+    "o_message": "Operation completed succesfully etes.",
+    "o_result": "failure"
+  },
+  {
+    "o_message": "Operation completed succesfully.",
+    "o_result": "failure"
+  }
+]
+
+-----------------------------------------------------------------------------------------------------------
+
+{
+  "jobLineSuccess": [
+    {
+      "jobNo": 84283358
+    }
+  ],
+  "jobLineErros": [
+    {
+      "jobNo": 84283359,
+      "errorId": 1,
+      "errorMessage": "Operation completed succesfully etes."
+    },
+    {
+      "jobNo": 84283357,
+      "errorId": 1,
+      "errorMessage": "Operation completed succesfully."
+    }
+  ]
+}
